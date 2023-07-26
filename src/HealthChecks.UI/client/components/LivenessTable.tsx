@@ -94,7 +94,7 @@ const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, ex
                   {item.status} {moment.utc(item.onStateFrom).fromNow().toString()}
                 </td>
                 <td className="align-center">
-                  {new Date(item.lastExecuted).toLocaleString()}
+                  {moment.utc(item.lastExecuted).format('YYYY-MM-DD HH:mm:ss')}
                 </td>
               </tr>
               <tr className="hc-checks-table-container is-hidden">

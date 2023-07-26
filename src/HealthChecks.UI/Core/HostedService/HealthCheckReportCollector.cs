@@ -216,7 +216,21 @@ namespace HealthChecks.UI.Core.HostedService
                     UpdateUris(execution, configuration);
                 }
 
-                if (execution.Status == healthReport.Status)
+                var hasItemStatusChange = false;
+                foreach (var item in execution.Entries)
+                {
+                    // If the health service is down, no entry in dictionary
+                    if (healthReport.Entries.TryGetValue(item.Name, out var reportEntry))
+                    {
+                        if (item.Status != reportEntry.Status)
+                        {
+                            hasItemStatusChange = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!hasItemStatusChange)
                 {
                     _logger.LogDebug("HealthReport history already exists and is in the same state, updating the values.");
 
