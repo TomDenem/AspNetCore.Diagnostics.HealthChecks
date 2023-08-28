@@ -219,14 +219,13 @@ namespace HealthChecks.UI.Core.HostedService
                 var hasItemStatusChange = false;
                 foreach (var item in execution.Entries)
                 {
+                    var hasReportEntry = healthReport.Entries.TryGetValue(item.Name, out var reportEntry);
+
                     // If the health service is down, no entry in dictionary
-                    if (healthReport.Entries.TryGetValue(item.Name, out var reportEntry))
+                    if ((hasReportEntry && reportEntry != null && item.Status != reportEntry.Status) || execution.Status != healthReport.Status)
                     {
-                        if (item.Status != reportEntry.Status)
-                        {
-                            hasItemStatusChange = true;
-                            break;
-                        }
+                        hasItemStatusChange = true;
+                        break;
                     }
                 }
 
