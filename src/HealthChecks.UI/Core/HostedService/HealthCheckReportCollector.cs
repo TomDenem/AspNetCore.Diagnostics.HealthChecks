@@ -234,7 +234,46 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
                 UpdateUris(execution, configuration);
             }
 
-            if (execution.Status == healthReport.Status)
+            // restore entries from history
+
+            foreach (var item in healthReport.ToExecutionEntries())
+            {
+                var existing = execution.Entries
+                    .SingleOrDefault(e => e.Name == item.Name);
+
+                if (existing == null)
+                {
+                    var previouslyDeleted = execution.History.Where(e => e.Name == item.Name)?.OrderByDescending(t => t.On)
+                                .FirstOrDefault();
+                    if (previouslyDeleted != null)
+                    {
+                        var restoredEntry = new HealthCheckExecutionEntry
+                        {
+                            Name = previouslyDeleted.Name,
+                            Status = previouslyDeleted.Status,
+                            Description = previouslyDeleted.Description,
+                            Duration = TimeSpan.Zero
+                        };
+
+                        execution.Entries.Add(restoredEntry);
+                    }
+                }
+            }
+
+            var hasItemStatusChange = false;
+            foreach (var item in execution.Entries)
+            {
+                var hasReportEntry = healthReport.Entries.TryGetValue(item.Name, out var reportEntry);
+
+                // If the health service is down, no entry in dictionary
+                if ((hasReportEntry && reportEntry != null && item.Status != reportEntry.Status) || execution.Status != healthReport.Status)
+                {
+                    hasItemStatusChange = true;
+                    break;
+                }
+            }
+
+            if (!hasItemStatusChange)
             {
                 _logger.LogDebug("HealthReport history already exists and is in the same state, updating the values.");
 
@@ -309,18 +348,27 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
         foreach (var item in execution.Entries)
         {
             // If the health service is down, no entry in dictionary
-            if (healthReport.Entries.TryGetValue(item.Name, out var reportEntry))
+            if (healthReport.Entries.TryGetValue(item.Name, out var reportEntry) && item.Status != reportEntry.Status)
             {
-                if (item.Status != reportEntry.Status)
+                execution.History.Add(new HealthCheckExecutionHistory
                 {
-                    execution.History.Add(new HealthCheckExecutionHistory
-                    {
-                        On = lastExecutionTime,
-                        Status = reportEntry.Status,
-                        Name = item.Name,
-                        Description = reportEntry.Description
-                    });
-                }
+                    On = lastExecutionTime,
+                    Status = reportEntry.Status,
+                    Name = item.Name,
+                    Description = reportEntry.Description
+                });
+            }
+
+            // Create history if there is an exception for all current entries (e.g. unreachable endpoint)
+            if (healthReport.Entries.Count == 1 && healthReport.Entries.TryGetValue("Endpoint", out var exceptionEntry))
+            {
+                execution.History.Add(new HealthCheckExecutionHistory
+                {
+                    On = lastExecutionTime,
+                    Status = exceptionEntry.Status,
+                    Name = item.Name,
+                    Description = exceptionEntry.Description
+                });
             }
         }
 
