@@ -9,18 +9,18 @@ public class DBConfigSetting
     public string ConnectionString { get; set; } = null!;
 }
 
-public class npgsql_healthcheck_should
+public class npgsql_healthcheck_should(PostgreSQLContainerFixture postgreSQLContainerFixture) : IClassFixture<PostgreSQLContainerFixture>
 {
     [Fact]
     public async Task be_healthy_if_npgsql_is_available()
     {
-        var connectionString = "Server=127.0.0.1;Port=8010;User ID=postgres;Password=Password12!;database=postgres";
+        var connectionString = postgreSQLContainerFixture.GetConnectionString();
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                .AddNpgSql(connectionString, tags: new string[] { "npgsql" });
+                .AddNpgSql(connectionString, tags: ["npgsql"]);
             })
             .Configure(app =>
             {
@@ -40,13 +40,13 @@ public class npgsql_healthcheck_should
     [Fact]
     public async Task be_unhealthy_if_sql_query_is_not_valid()
     {
-        var connectionString = "Server=127.0.0.1;Port=8010;User ID=postgres;Password=Password12!;database=postgres";
+        var connectionString = postgreSQLContainerFixture.GetConnectionString();
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                .AddNpgSql(connectionString, "SELECT 1 FROM InvalidDB", tags: new string[] { "npgsql" });
+                .AddNpgSql(connectionString, "SELECT 1 FROM InvalidDB", tags: ["npgsql"]);
             })
             .Configure(app =>
             {
@@ -70,7 +70,7 @@ public class npgsql_healthcheck_should
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                .AddNpgSql("Server=200.0.0.1;Port=8010;User ID=postgres;Password=Password12!;database=postgres", tags: new string[] { "npgsql" });
+                .AddNpgSql("Server=200.0.0.1;Port=8010;User ID=postgres;Password=Password12!;database=postgres", tags: ["npgsql"]);
             })
             .Configure(app =>
             {
@@ -90,16 +90,18 @@ public class npgsql_healthcheck_should
     [Fact]
     public async Task be_healthy_if_npgsql_is_available_by_iServiceProvider_registered()
     {
+        var connectionString = postgreSQLContainerFixture.GetConnectionString();
+
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
             {
                 services.AddSingleton(new DBConfigSetting
                 {
-                    ConnectionString = "Server=127.0.0.1;Port=8010;User ID=postgres;Password=Password12!;database=postgres"
+                    ConnectionString = connectionString
                 });
 
                 services.AddHealthChecks()
-                        .AddNpgSql(_ => _.GetRequiredService<DBConfigSetting>().ConnectionString, tags: new string[] { "npgsql" });
+                        .AddNpgSql(_ => _.GetRequiredService<DBConfigSetting>().ConnectionString, tags: ["npgsql"]);
             })
             .Configure(app =>
             {
@@ -128,7 +130,7 @@ public class npgsql_healthcheck_should
                 });
 
                 services.AddHealthChecks()
-                        .AddNpgSql(_ => _.GetRequiredService<DBConfigSetting>().ConnectionString, tags: new string[] { "npgsql" });
+                        .AddNpgSql(_ => _.GetRequiredService<DBConfigSetting>().ConnectionString, tags: ["npgsql"]);
             })
             .Configure(app =>
             {
@@ -148,7 +150,7 @@ public class npgsql_healthcheck_should
     [Fact]
     public async Task unhealthy_check_log_detailed_messages()
     {
-        var connectionString = "Server=127.0.0.1;Port=8010;User ID=postgres;Password=Password12!;database=postgres";
+        var connectionString = postgreSQLContainerFixture.GetConnectionString();
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
@@ -159,7 +161,7 @@ public class npgsql_healthcheck_should
                         .Services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, TestLoggerProvider>())
                     )
                 .AddHealthChecks()
-                .AddNpgSql(connectionString, "SELECT 1 FROM InvalidDB", tags: new string[] { "npgsql" });
+                .AddNpgSql(connectionString, "SELECT 1 FROM InvalidDB", tags: ["npgsql"]);
             })
             .Configure(app =>
             {

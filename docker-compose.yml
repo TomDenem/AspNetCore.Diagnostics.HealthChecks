@@ -24,6 +24,15 @@ services:
         volumes:
             - ./build/docker-services/solrcore:/var/solr/data/solrcore
             - ./build/docker-services/solrcoredown:/var/solr/data/solrcoredown
+    clickhouse:
+        image: clickhouse/clickhouse-server:24-alpine
+        environment:
+            - CLICKHOUSE_DB=${CLICKHOUSE_USER}
+            - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+            - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+            - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT="1"
+        ports:
+            - ${CLICKHOUSE_PORT}:8123
     postgres:
         image: postgres
         environment:
@@ -48,26 +57,12 @@ services:
             - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
         ports:
             - ${MYSQL_PORT}:3306
-    zookeeper:
-        image: confluent/zookeeper
-        ports:
-            - ${ZOOKEEPER_PORT}:2181
     raven:
         image: ravendb/ravendb
         ports:
             - ${RAVENDB_PORT}:8080
         environment:
             - RAVEN_ARGS=--Setup.Mode=None
-    kafka:
-        image: confluent/kafka
-        environment:
-            - KAFKA_ADVERTISED_HOST_NAME=localhost
-            - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-            - KAFKA_ADVERTISED_PORT=9092
-        ports:
-          - ${KAFKA_PORT}:9092
-        links:
-          - zookeeper
     rabbitmq:
         image: rabbitmq
         ports:
@@ -165,7 +160,7 @@ services:
         image: postgres
         ports:
         - "8010:5432"
-        environment: 
+        environment:
         - POSTGRES_USER=postgres
         - POSTGRES_PASSWORD=Password12!
     nats:
@@ -180,7 +175,7 @@ services:
         ports:
          - "8086:8086"
         environment:
-          DOCKER_INFLUXDB_INIT_MODE: setup 
+          DOCKER_INFLUXDB_INIT_MODE: setup
           DOCKER_INFLUXDB_INIT_USERNAME: ci_user
           DOCKER_INFLUXDB_INIT_PASSWORD: password
           DOCKER_INFLUXDB_INIT_ORG: influxdata

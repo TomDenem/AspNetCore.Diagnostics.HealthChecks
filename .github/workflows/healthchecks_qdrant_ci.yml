@@ -1,0 +1,36 @@
+name: HealthChecks Qdrant CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    paths:
+      - src/HealthChecks.Qdrant/**
+      - test/HealthChecks.Qdrant.Tests/**
+      - test/_SHARED/**
+      - .github/workflows/healthchecks_qdrant_ci.yml
+      - Directory.Build.props
+      - Directory.Build.targets
+      - Directory.Packages.props
+    tags-ignore:
+      - release-*
+      - preview-*
+
+  pull_request:
+    branches: [ master ]
+    paths:
+      - src/HealthChecks.Qdrant/**
+      - test/HealthChecks.Qdrant.Tests/**
+      - test/_SHARED/**
+      - .github/workflows/healthchecks_qdrant_ci.yml
+      - Directory.Build.props
+      - Directory.Build.targets
+      - Directory.Packages.props
+
+jobs:
+  build:
+    uses: ./.github/workflows/reusable_ci_workflow.yml
+    with:
+      PROJECT_PATH: ./src/HealthChecks.Qdrant/HealthChecks.Qdrant.csproj
+      TEST_PROJECT_PATH: ./test/HealthChecks.Qdrant.Tests/HealthChecks.Qdrant.Tests.csproj
+      CODECOV_FLAGS: Qdrant

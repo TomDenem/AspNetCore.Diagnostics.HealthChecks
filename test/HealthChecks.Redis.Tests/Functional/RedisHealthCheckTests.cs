@@ -5,18 +5,18 @@ using StackExchange.Redis.Profiling;
 
 namespace HealthChecks.Redis.Tests.Functional;
 
-public class redis_healthcheck_should
+public class redis_healthcheck_should(RedisContainerFixture redisContainerFixture) : IClassFixture<RedisContainerFixture>
 {
     [Fact]
     public async Task be_healthy_if_redis_is_available_with_connection_string()
     {
-        var connectionString = "localhost:6379,allowAdmin=true";
+        var connectionString = $"{redisContainerFixture.GetConnectionString()},allowAdmin=true";
 
         var webHostBuilder = new WebHostBuilder()
          .ConfigureServices(services =>
          {
              services.AddHealthChecks()
-              .AddRedis(connectionString, tags: new string[] { "redis" });
+              .AddRedis(connectionString, tags: ["redis"]);
          })
          .Configure(app =>
          {
@@ -36,14 +36,14 @@ public class redis_healthcheck_should
     [Fact]
     public async Task be_healthy_if_multiple_redis_are_available_with_connection_string()
     {
-        var connectionString = "localhost:6379,allowAdmin=true";
+        var connectionString = $"{redisContainerFixture.GetConnectionString()},allowAdmin=true";
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                .AddRedis(connectionString, tags: new string[] { "redis" }, name: "1")
-                .AddRedis(connectionString, tags: new string[] { "redis" }, name: "2");
+                .AddRedis(connectionString, tags: ["redis"], name: "1")
+                .AddRedis(connectionString, tags: ["redis"], name: "2");
             })
             .Configure(app =>
             {
@@ -63,14 +63,16 @@ public class redis_healthcheck_should
     [Fact]
     public async Task be_healthy_if_redis_is_available_with_connection_multiplexer()
     {
+        var connectionString = $"{redisContainerFixture.GetConnectionString()},allowAdmin=true";
+
         var connectionMultiplexer = await ConnectionMultiplexer
-            .ConnectAsync("localhost:6379,allowAdmin=true");
+            .ConnectAsync(connectionString);
 
         var webHostBuilder = new WebHostBuilder()
          .ConfigureServices(services =>
          {
              services.AddHealthChecks()
-              .AddRedis(connectionMultiplexer, tags: new string[] { "redis" });
+              .AddRedis(connectionMultiplexer, tags: ["redis"]);
          })
          .Configure(app =>
          {
@@ -90,8 +92,10 @@ public class redis_healthcheck_should
     [Fact]
     public async Task be_healthy_if_multiple_redis_are_available_with_connection_multiplexer()
     {
+        var connectionString = $"{redisContainerFixture.GetConnectionString()},allowAdmin=true";
+
         var connectionMultiplexer = await ConnectionMultiplexer
-            .ConnectAsync("localhost:6379,allowAdmin=true");
+            .ConnectAsync(connectionString);
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
@@ -99,8 +103,8 @@ public class redis_healthcheck_should
                 services.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer);
 
                 services.AddHealthChecks()
-                    .AddRedis(connectionMultiplexer, tags: new string[] { "redis" }, name: "1")
-                    .AddRedis(sp => sp.GetRequiredService<IConnectionMultiplexer>(), tags: new string[] { "redis" }, name: "2");
+                    .AddRedis(connectionMultiplexer, tags: ["redis"], name: "1")
+                    .AddRedis(sp => sp.GetRequiredService<IConnectionMultiplexer>(), tags: ["redis"], name: "2");
             })
             .Configure(app =>
             {
@@ -152,7 +156,7 @@ public class redis_healthcheck_should
          .ConfigureServices(services =>
          {
              services.AddHealthChecks()
-              .AddRedis("nonexistinghost:6379,allowAdmin=true", tags: new string[] { "redis" });
+              .AddRedis("nonexistinghost:6379,allowAdmin=true", tags: ["redis"]);
          })
          .Configure(app =>
          {
@@ -176,7 +180,7 @@ public class redis_healthcheck_should
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                    .AddRedis("nonexistinghost:6379,allowAdmin=true,connectRetry=2147483647", tags: new string[] { "redis" }, timeout: TimeSpan.FromSeconds(2));
+                    .AddRedis("nonexistinghost:6379,allowAdmin=true,connectRetry=2147483647", tags: ["redis"], timeout: TimeSpan.FromSeconds(2));
             })
             .Configure(app =>
             {
@@ -222,7 +226,7 @@ public class redis_healthcheck_should
     private sealed class NotConnectionMultiplexer : IConnectionMultiplexer
     {
         // it returns an empty array of endpoints, so nothing should get checked and OK should be returned by the health check
-        public EndPoint[] GetEndPoints(bool configuredOnly = false) => Array.Empty<EndPoint>();
+        public EndPoint[] GetEndPoints(bool configuredOnly = false) => [];
 
 #pragma warning disable CS0067
         public override string ToString() => "stop complaining about Nullability";

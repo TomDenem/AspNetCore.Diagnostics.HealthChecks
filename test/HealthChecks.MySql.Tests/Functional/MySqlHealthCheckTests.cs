@@ -3,12 +3,12 @@ using MySqlConnector;
 
 namespace HealthChecks.MySql.Tests.Functional;
 
-public class mysql_healthcheck_should
+public class mysql_healthcheck_should(MySqlContainerFixture mySqlContainerFixture) : IClassFixture<MySqlContainerFixture>
 {
     [Fact]
     public async Task be_healthy_when_mysql_server_is_available_using_data_source()
     {
-        var connectionString = "server=localhost;port=3306;database=information_schema;uid=root;password=Password12!";
+        var connectionString = mySqlContainerFixture.GetConnectionString();
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
@@ -35,13 +35,13 @@ public class mysql_healthcheck_should
     [Fact]
     public async Task be_healthy_when_mysql_server_is_available_using_connection_string()
     {
-        var connectionString = "server=localhost;port=3306;database=information_schema;uid=root;password=Password12!";
+        var connectionString = mySqlContainerFixture.GetConnectionString();
 
         var webHostBuilder = new WebHostBuilder()
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                .AddMySql(connectionString, tags: new string[] { "mysql" });
+                .AddMySql(connectionString, tags: ["mysql"]);
             })
             .Configure(app =>
             {
@@ -67,7 +67,7 @@ public class mysql_healthcheck_should
             .ConfigureServices(services =>
             {
                 services.AddHealthChecks()
-                .AddMySql(connectionString, tags: new string[] { "mysql" });
+                .AddMySql(connectionString, tags: ["mysql"]);
             })
             .Configure(app =>
             {
@@ -94,7 +94,7 @@ public class mysql_healthcheck_should
             {
                 var mysqlOptions = new MySqlHealthCheckOptions(connectionString);
                 services.AddHealthChecks()
-                    .AddMySql(mysqlOptions, tags: new string[] { "mysql" });
+                    .AddMySql(mysqlOptions, tags: ["mysql"]);
             })
             .Configure(app =>
             {
