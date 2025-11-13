@@ -1,5 +1,4 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import moment from 'moment';
 import { Liveness, UIApiSettings } from '../typings/models';
 import { LivenessTable } from '../components/LivenessTable';
 import { useQuery } from 'react-query';
@@ -7,7 +6,6 @@ import { getHealthChecks } from '../api/fetchers';
 import { LivenessMenu } from '../components/LivenessMenu';
 import { AlertPanel } from '../components/AlertPanel';
 import { useAuth } from "react-oidc-context";
-import { UserProfile } from 'oidc-client-ts';
 
 interface LivenessState {
     error: Nullable<string>;
@@ -23,7 +21,7 @@ const LivenessPage: React.FunctionComponent<LivenessProps> = ({ apiSettings }) =
   const auth = useAuth();
   const access_token = auth.user?.access_token;
   const roles = auth.user?.profile['role'] as string[];
-  const isPortalOrSystemAdmin = roles?.some(r => ['System Administrator', 'Portal Administrator'].includes(r)) || false;
+  const isAdmin = roles?.some(r => apiSettings.adminRoles.includes(r)) || false;
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [fetchInterval, setFetchInterval] = useState<number | false>(apiSettings.pollingInterval * 1000);
@@ -95,7 +93,7 @@ const LivenessPage: React.FunctionComponent<LivenessProps> = ({ apiSettings }) =
                           expandAll={expandAll}
                           collapseAll={collapseAll}
                           livenessData={livenessData!}
-                          isPortalOrSystemAdmin={isPortalOrSystemAdmin}
+                          isAdmin={isAdmin}
                         />) : null}
                 </div>
             </div>

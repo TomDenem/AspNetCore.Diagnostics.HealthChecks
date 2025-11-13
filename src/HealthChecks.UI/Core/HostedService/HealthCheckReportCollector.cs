@@ -175,13 +175,13 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
         {
             var client = new HttpClient();
 
-            var disco = await client.GetDiscoveryDocumentAsync("https://localhost:4001");
+            var baseAddress = _configuration.GetSection("Auth:IdentityServerAddress").Get<string>();
+            var disco = await client.GetDiscoveryDocumentAsync(baseAddress);
             if (disco.IsError)
             {
                 Console.WriteLine($"Disco error: {disco.Error}");
             }
 
-            var baseAddress = _configuration.GetSection("Auth:IdentityServerAddress").Get<string>();
             var clientId = _configuration.GetSection("Auth:ClientCredentials:ClientId").Get<string>();
             var clientSecret = _configuration.GetSection("Auth:ClientCredentials:ClientSecret").Get<string>();
             var scope = _configuration.GetSection("Auth:ClientCredentials:Scope").Get<string>();

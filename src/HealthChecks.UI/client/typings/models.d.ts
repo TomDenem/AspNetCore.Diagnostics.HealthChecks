@@ -48,4 +48,5 @@ export interface UIApiSettings {
   clientId: string;
   redirectUri: string;
   scope: string;
+  adminRoles: string[];
 }

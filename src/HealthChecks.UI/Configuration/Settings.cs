@@ -26,6 +26,7 @@ public class Settings
     internal string RedirectUri { get; private set; } = "https://localhost:7038";
     internal string ClientId { get; private set; } = "clientId";
     internal string Scope { get; private set; } = "openid profile email";
+    internal List<string> AdminRoles { get; private set; } = new List<string>();
 
     public Settings AddHealthCheckEndpoint(string name, string uri)
     {
@@ -105,6 +106,12 @@ public class Settings
     public Settings SetClientId(string text)
     {
         ClientId = string.IsNullOrEmpty(text) ? ClientId : text;
+        return this;
+    }
+
+    public Settings SetAdminRoles(List<string> adminRoles)
+    {
+        AdminRoles = adminRoles;
         return this;
     }
 

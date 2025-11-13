@@ -8,10 +8,10 @@ interface LivenessTableProps {
   livenessData: Array<Liveness>;
   collapseAll: (event: any) => void;
   expandAll: (event: any) => void;
-  isPortalOrSystemAdmin: boolean;
+  isAdmin: boolean;
 }
 
-const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, expandAll, collapseAll, isPortalOrSystemAdmin }) => {
+const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, expandAll, collapseAll, isAdmin }) => {
 
   const mapTable = (livenessData: Array<Liveness>): Array<Liveness> => {
     return livenessData.map(liveness => {
@@ -49,7 +49,7 @@ const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, ex
     <table className="hc-table">
       <thead className="hc-table__head">
         <tr>
-          {isPortalOrSystemAdmin && 
+          {isAdmin && 
             <th>
               <button title="expand all" onClick={e => toggleAll(e)}>
                 <i className="material-icons js-toggle-all">
@@ -72,7 +72,7 @@ const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, ex
               <tr
                 className="hc-table__row"
                 onClick={toggleVisibility}>
-                {isPortalOrSystemAdmin &&
+                {isAdmin &&
                   <td className="align-center">
                     <i
                       className="material-icons js-toggle-event"
