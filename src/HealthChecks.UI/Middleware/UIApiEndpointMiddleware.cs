@@ -41,25 +41,44 @@ internal class UIApiEndpointMiddleware
 
         var healthChecksExecutions = new List<HealthCheckExecution>();
 
-        foreach (var item in healthChecks.OrderBy(h => h.Id))
+        var isSystemOrPortalAdmin = context.User.Claims.Any(t => (t.Value == "System Administrator" || t.Value == "Portal Administrator") && t.Type == "role");
+        if (isSystemOrPortalAdmin)
         {
-            var execution = await db.Executions
-                        .Include(le => le.Entries.OrderBy(e => e.Name))
-                        .Where(le => le.Name == item.Name)
-                        .AsNoTracking()
-                        .SingleOrDefaultAsync()
+            foreach (var item in healthChecks.OrderBy(h => h.Id))
+            {
+                var execution = await db.Executions
+                            .Include(le => le.Entries.OrderBy(e => e.Name))
+                            .Where(le => le.Name == item.Name)
+                            .AsNoTracking()
+                            .SingleOrDefaultAsync()
+                            .ConfigureAwait(false);
+
+                if (execution != null)
+                {
+                    execution.History = await db.HealthCheckExecutionHistories
+                        .Where(eh => EF.Property<int>(eh, "HealthCheckExecutionId") == execution.Id)
+                        .OrderByDescending(eh => eh.On)
+                        .Take(_settings.MaximumExecutionHistoriesPerEndpoint)
+                        .ToListAsync()
                         .ConfigureAwait(false);
 
-            if (execution != null)
+                    healthChecksExecutions.Add(execution);
+                }
+            }
+        }
+        else
+        {
+            foreach (var item in healthChecks.OrderBy(h => h.Id))
             {
-                execution.History = await db.HealthCheckExecutionHistories
-                    .Where(eh => EF.Property<int>(eh, "HealthCheckExecutionId") == execution.Id)
-                    .OrderByDescending(eh => eh.On)
-                    .Take(_settings.MaximumExecutionHistoriesPerEndpoint)
-                    .ToListAsync()
-                    .ConfigureAwait(false);
+                var execution = await db.Executions
+                            .AsNoTracking()
+                            .SingleOrDefaultAsync()
+                            .ConfigureAwait(false);
 
-                healthChecksExecutions.Add(execution);
+                if (execution != null)
+                {
+                    healthChecksExecutions.Add(execution);
+                }
             }
         }
 

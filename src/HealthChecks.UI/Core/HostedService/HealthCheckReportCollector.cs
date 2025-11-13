@@ -1,3 +1,5 @@
+using System.Diagnostics.Metrics;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -5,7 +7,9 @@ using HealthChecks.UI.Configuration;
 using HealthChecks.UI.Core.Extensions;
 using HealthChecks.UI.Core.Notifications;
 using HealthChecks.UI.Data;
+using IdentityModel.Client;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -31,6 +35,8 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
         }
     };
     private bool _disposed;
+    private TokenResponse? _tokenResponse;
+    private readonly IConfiguration _configuration;
 
     public HealthCheckReportCollector(
         HealthChecksDb db,
@@ -39,7 +45,8 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
         ILogger<HealthCheckReportCollector> logger,
         IOptions<Settings> settings,
         ServerAddressesService serverAddressService,
-        IEnumerable<IHealthCheckCollectorInterceptor> interceptors)
+        IEnumerable<IHealthCheckCollectorInterceptor> interceptors,
+        IConfiguration configuration)
     {
         _db = Guard.ThrowIfNull(db);
         _healthCheckFailureNotifier = Guard.ThrowIfNull(healthCheckFailureNotifier);
@@ -48,6 +55,7 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
         _interceptors = interceptors ?? Enumerable.Empty<IHealthCheckCollectorInterceptor>();
         _settings = Guard.ThrowIfNull(settings.Value);
         _httpClient = httpClientFactory.CreateClient(Keys.HEALTH_CHECK_HTTP_CLIENT_NAME);
+        _configuration = configuration;
     }
 
     public async Task Collect(CancellationToken cancellationToken)
@@ -139,6 +147,9 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
                 }
             }
 
+            var accessToken = await GetBearerTokenAsync();
+            _httpClient.SetBearerToken(accessToken);
+
             response ??= await _httpClient.GetAsync(absoluteUri, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
             using (response)
@@ -156,6 +167,37 @@ internal sealed class HealthCheckReportCollector : IHealthCheckReportCollector, 
 
             return UIHealthReport.CreateFrom(exception);
         }
+    }
+
+    private async Task<string> GetBearerTokenAsync()
+    {
+        if (string.IsNullOrEmpty(_tokenResponse?.AccessToken) || _tokenResponse.ExpiresIn < 60)
+        {
+            var client = new HttpClient();
+
+            var baseAddress = _configuration.GetSection("Auth:IdentityServerAddress").Get<string>();
+            var disco = await client.GetDiscoveryDocumentAsync(baseAddress);
+            if (disco.IsError)
+            {
+                Console.WriteLine($"Disco error: {disco.Error}");
+            }
+
+            var clientId = _configuration.GetSection("Auth:ClientCredentials:ClientId").Get<string>();
+            var clientSecret = _configuration.GetSection("Auth:ClientCredentials:ClientSecret").Get<string>();
+            var scope = _configuration.GetSection("Auth:ClientCredentials:Scope").Get<string>();
+
+            var tokenRequest = new ClientCredentialsTokenRequest
+            {
+                Address = $"{baseAddress}/connect/token",
+                ClientId = clientId,
+                ClientSecret = clientSecret,
+                Scope = scope,
+                GrantType = "client_credentials"
+            };
+            _tokenResponse = await _httpClient.RequestClientCredentialsTokenAsync(tokenRequest);
+        }
+
+        return _tokenResponse.AccessToken;
     }
 
     private Uri GetEndpointUri(HealthCheckConfiguration configuration)

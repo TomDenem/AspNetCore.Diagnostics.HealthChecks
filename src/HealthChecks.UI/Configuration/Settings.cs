@@ -22,6 +22,11 @@ public class Settings
     internal Action<IServiceProvider, HttpClient>? WebHooksEndpointHttpClientConfig { get; private set; }
     internal Dictionary<string, Type> WebHooksEndpointDelegatingHandlerTypes { get; set; } = new();
     internal string HeaderText { get; private set; } = "Health Checks Status";
+    internal string Authority { get; private set; } = "https://localhost";
+    internal string RedirectUri { get; private set; } = "https://localhost";
+    internal string ClientId { get; private set; } = "clientId";
+    internal string Scope { get; private set; } = "openid profile email";
+    internal List<string> AdminRoles { get; private set; } = new List<string>();
 
     public Settings AddHealthCheckEndpoint(string name, string uri)
     {
@@ -77,6 +82,36 @@ public class Settings
     public Settings SetHeaderText(string text)
     {
         HeaderText = string.IsNullOrEmpty(text) ? HeaderText : text;
+        return this;
+    }
+
+    public Settings SetAuthority(string text)
+    {
+        Authority = string.IsNullOrEmpty(text) ? Authority : text;
+        return this;
+    }
+
+    public Settings SetRedirectUri(string text)
+    {
+        RedirectUri = string.IsNullOrEmpty(text) ? RedirectUri : text;
+        return this;
+    }
+
+    public Settings SetScope(string text)
+    {
+        Scope = string.IsNullOrEmpty(text) ? Scope : text;
+        return this;
+    }
+
+    public Settings SetClientId(string text)
+    {
+        ClientId = string.IsNullOrEmpty(text) ? ClientId : text;
+        return this;
+    }
+
+    public Settings SetAdminRoles(List<string> adminRoles)
+    {
+        AdminRoles = adminRoles;
         return this;
     }
 

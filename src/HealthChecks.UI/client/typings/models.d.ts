@@ -44,4 +44,9 @@ interface WebHook {
 export interface UIApiSettings {
   pollingInterval: number;
   headerText: string;
+  authority: string;
+  clientId: string;
+  redirectUri: string;
+  scope: string;
+  adminRoles: string[];
 }
