@@ -21,7 +21,7 @@ const LivenessPage: React.FunctionComponent<LivenessProps> = ({ apiSettings }) =
   const auth = useAuth();
   const access_token = auth.user?.access_token;
   const roles = auth.user?.profile['role'] as string[];
-  const isAdmin = roles?.some(r => apiSettings.adminRoles.includes(r)) || false;
+  const isAdmin = roles?.some(r => apiSettings.adminRoles?.includes(r)) || false;
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [fetchInterval, setFetchInterval] = useState<number | false>(apiSettings.pollingInterval * 1000);
