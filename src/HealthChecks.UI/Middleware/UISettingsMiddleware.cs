@@ -15,7 +15,11 @@ internal class UISettingsMiddleware
         _uiOutputSettings = new
         {
             pollingInterval = settings.Value.EvaluationTimeInSeconds,
-            headerText = settings.Value.HeaderText
+            headerText = settings.Value.HeaderText,
+            authority = settings.Value.Authority,
+            clientId = settings.Value.ClientId,
+            redirectUri = settings.Value.RedirectUri,
+            scope = settings.Value.Scope
         };
     }
 

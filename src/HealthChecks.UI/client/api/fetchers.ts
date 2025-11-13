@@ -1,8 +1,12 @@
 import { Liveness, UIApiSettings, WebHook } from "../typings/models";
 import uiSettings from "../config/UISettings";
 
-export const getHealthChecks = async (): Promise<Liveness[]> => {
-  const healthchecksData = await fetch(uiSettings.uiApiEndpoint);
+export const getHealthChecks = async (access_token: string): Promise<Liveness[]> => {
+  const healthchecksData = await fetch(uiSettings.uiApiEndpoint, {
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+    }
+  });
   return healthchecksData.json();
 };
 

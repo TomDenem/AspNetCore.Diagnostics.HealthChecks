@@ -8,9 +8,10 @@ interface LivenessTableProps {
   livenessData: Array<Liveness>;
   collapseAll: (event: any) => void;
   expandAll: (event: any) => void;
+  isPortalOrSystemAdmin: boolean;
 }
 
-const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, expandAll, collapseAll }) => {
+const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, expandAll, collapseAll, isPortalOrSystemAdmin }) => {
 
   const mapTable = (livenessData: Array<Liveness>): Array<Liveness> => {
     return livenessData.map(liveness => {
@@ -48,13 +49,15 @@ const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, ex
     <table className="hc-table">
       <thead className="hc-table__head">
         <tr>
-          <th>
-            <button title="expand all" onClick={e => toggleAll(e)}>
-              <i className="material-icons js-toggle-all">
-                add_circle_outline
-              </i>
-            </button>
-          </th>
+          {isPortalOrSystemAdmin && 
+            <th>
+              <button title="expand all" onClick={e => toggleAll(e)}>
+                <i className="material-icons js-toggle-all">
+                  add_circle_outline
+                </i>
+              </button>
+            </th>
+          }          
           <th>Name</th>
           <th>Health</th>
           <th>On state from</th>
@@ -69,14 +72,16 @@ const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, ex
               <tr
                 className="hc-table__row"
                 onClick={toggleVisibility}>
+                {isPortalOrSystemAdmin &&
+                  <td className="align-center">
+                    <i
+                      className="material-icons js-toggle-event"
+                      title="expand info">
+                      add
+                    </i>
+                  </td>
+                }
                 <td className="align-center">
-                  <i
-                    className="material-icons js-toggle-event"
-                    title="expand info">
-                    add
-                  </i>
-                </td>
-                <td>
                   {getDiscoveryServiceImage(item.discoveryService)}
                   {item.name}
                 </td>

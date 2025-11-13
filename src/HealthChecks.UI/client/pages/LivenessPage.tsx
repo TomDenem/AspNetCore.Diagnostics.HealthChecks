@@ -6,6 +6,8 @@ import { useQuery } from 'react-query';
 import { getHealthChecks } from '../api/fetchers';
 import { LivenessMenu } from '../components/LivenessMenu';
 import { AlertPanel } from '../components/AlertPanel';
+import { useAuth } from "react-oidc-context";
+import { UserProfile } from 'oidc-client-ts';
 
 interface LivenessState {
     error: Nullable<string>;
@@ -18,12 +20,16 @@ interface LivenessProps {
 }
 
 const LivenessPage: React.FunctionComponent<LivenessProps> = ({ apiSettings }) => {
+  const auth = useAuth();
+  const access_token = auth.user?.access_token;
+  const roles = auth.user?.profile['role'] as string[];
+  const isPortalOrSystemAdmin = roles?.some(r => ['System Administrator', 'Portal Administrator'].includes(r)) || false;
 
-    const tableContainerRef = useRef<HTMLDivElement>(null);
-    const [fetchInterval, setFetchInterval] = useState<number | false>(apiSettings.pollingInterval * 1000);
-    const [running, setRunning] = useState<boolean>(true);
-    
-    const { data: livenessData, isError } = useQuery("healthchecks", getHealthChecks,
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [fetchInterval, setFetchInterval] = useState<number | false>(apiSettings.pollingInterval * 1000);
+  const [running, setRunning] = useState<boolean>(true);
+
+  const { data: livenessData, isError } = useQuery(access_token, getHealthChecks,
         { refetchInterval: fetchInterval, keepPreviousData: true, retry: 1 });
 
     useEffect(() => {
@@ -68,7 +74,10 @@ const LivenessPage: React.FunctionComponent<LivenessProps> = ({ apiSettings }) =
     return (
         <article className="hc-liveness">
             <header className="hc-liveness__header">
-                <h1>{apiSettings.headerText}</h1>
+                <div className="hc-liveness__header">
+                  <div className="hc-aside__logo me-05" title="natific" />
+                  <h1>{apiSettings.headerText}</h1>
+                </div>
                 <LivenessMenu
                     pollingInterval={apiSettings.pollingInterval}
                     running={running}
@@ -83,9 +92,10 @@ const LivenessPage: React.FunctionComponent<LivenessProps> = ({ apiSettings }) =
                     ref={tableContainerRef}>
                     {livenessData !== undefined ? (
                         <LivenessTable
-                            expandAll={expandAll}
-                            collapseAll={collapseAll}
-                            livenessData={livenessData!}
+                          expandAll={expandAll}
+                          collapseAll={collapseAll}
+                          livenessData={livenessData!}
+                          isPortalOrSystemAdmin={isPortalOrSystemAdmin}
                         />) : null}
                 </div>
             </div>
