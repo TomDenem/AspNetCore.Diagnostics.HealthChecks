@@ -19,7 +19,8 @@ internal class UISettingsMiddleware
             authority = settings.Value.Authority,
             clientId = settings.Value.ClientId,
             redirectUri = settings.Value.RedirectUri,
-            scope = settings.Value.Scope
+            scope = settings.Value.Scope,
+            adminRoles = settings.Value.AdminRoles
         };
     }
 
