@@ -18,7 +18,7 @@ const AsideMenu : FunctionComponent<AsideMenuProps> = (props: AsideMenuProps) =>
         }}>
         <i className="material-icons">{props.isOpen ? 'menu_open' : 'menu'}</i>
       </button>
-      <div className="hc-aside__logo" title="Logo as background image" />
+      <div className="hc-aside__logo" title="natific" />
       <nav className="hc-aside-menu">{props.children}</nav>
     </aside>
   );

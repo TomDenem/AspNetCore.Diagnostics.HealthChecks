@@ -6,6 +6,7 @@ import { getHealthChecks } from '../api/fetchers';
 import { LivenessMenu } from '../components/LivenessMenu';
 import { AlertPanel } from '../components/AlertPanel';
 import { useAuth } from "react-oidc-context";
+import { UserProfile } from 'oidc-client-ts';
 
 interface LivenessState {
     error: Nullable<string>;
