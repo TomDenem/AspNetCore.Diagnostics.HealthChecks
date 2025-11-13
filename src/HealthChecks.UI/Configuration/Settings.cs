@@ -22,8 +22,8 @@ public class Settings
     internal Action<IServiceProvider, HttpClient>? WebHooksEndpointHttpClientConfig { get; private set; }
     internal Dictionary<string, Type> WebHooksEndpointDelegatingHandlerTypes { get; set; } = new();
     internal string HeaderText { get; private set; } = "Health Checks Status";
-    internal string Authority { get; private set; } = "https://localhost:4001";
-    internal string RedirectUri { get; private set; } = "https://localhost:7038";
+    internal string Authority { get; private set; } = "https://localhost";
+    internal string RedirectUri { get; private set; } = "https://localhost";
     internal string ClientId { get; private set; } = "clientId";
     internal string Scope { get; private set; } = "openid profile email";
     internal List<string> AdminRoles { get; private set; } = new List<string>();
