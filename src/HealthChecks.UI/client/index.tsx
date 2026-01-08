@@ -12,7 +12,6 @@ import { FunctionComponent } from 'react';
 
 const Application: FunctionComponent = () => {
   const { data: apiSettings } = useQuery("uiApiSettings", fetchers.getUIApiSettings, { retry: 1 });
-  console.log('Application', apiSettings);
   const oidcConfig: AuthProviderProps = {
     authority: apiSettings?.authority ?? '',
     client_id: apiSettings?.clientId ?? '',
