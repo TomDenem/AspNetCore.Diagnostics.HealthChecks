@@ -71,7 +71,7 @@ const LivenessTable: FunctionComponent<LivenessTableProps> = ({ livenessData, ex
             <React.Fragment key={index}>
               <tr
                 className="hc-table__row"
-                onClick={toggleVisibility}>
+                onClick={e => toggleVisibility(e, isAdmin)}>
                 {isAdmin &&
                   <td className="align-center">
                     <i
@@ -132,17 +132,19 @@ const getDiscoveryServiceImage = (discoveryService: string) => {
   return null;
 }
 
-const toggleVisibility = (event: any) => {
+const toggleVisibility = (event: any, isAdmin: boolean) => {
   let { currentTarget } = event;
   let checksTable = currentTarget.nextSibling;
   let isHidden = checksTable.classList.contains('is-hidden');
-  isHidden
+  isHidden && isAdmin
     ? checksTable.classList.remove('is-hidden')
     : checksTable.classList.add('is-hidden');
 
   let iconImage = currentTarget.getElementsByClassName('js-toggle-event')[0];
-  iconImage.innerHTML = isHidden ? 'remove' : 'add';
-  iconImage.setAttribute('title', isHidden ? 'hide info' : 'expand info');
+  if (iconImage) {
+    iconImage.innerHTML = isHidden ? 'remove' : 'add';
+    iconImage.setAttribute('title', isHidden ? 'hide info' : 'expand info');
+  }
 };
 
 export { LivenessTable };
