@@ -41,8 +41,8 @@ internal class UIApiEndpointMiddleware
 
         var healthChecksExecutions = new List<HealthCheckExecution>();
 
-        var isSystemOrPortalAdmin = context.User.Claims.Any(t => (t.Value == "System Administrator" || t.Value == "Portal Administrator") && t.Type == "role");
-        if (isSystemOrPortalAdmin)
+        var isSystemOrPortalAdmin = context?.User?.Claims?.Any(t => (t.Value == "System Administrator" || t.Value == "Portal Administrator") && t.Type == "role");
+        if (isSystemOrPortalAdmin == true)
         {
             foreach (var item in healthChecks.OrderBy(h => h.Id))
             {
